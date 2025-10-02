@@ -1,52 +1,93 @@
-n = 0.1
-y = 0
-w1 = 0.1
-w2 = 0.1
-b = 0.2
-x1 = 0
-x2 = 0
-d = 0
-fila  = 1
-x = 1
-epoca = 1   
-while x <= 100:
-    if fila == 5:
-        fila = 1
+import numpy as np
+# Parámetros iniciales
+n = 0.1             
+w1 = np.random.rand()  
+w2 = np.random.rand()
+b = np.random.rand()
+max_epocas = 20    
 
-#Modificable (esto representa la tabla)
-    if fila == 1:
-        print("Época", epoca)
-        epoca += 1
-        x1 = 0
-        x2 = 0
-        d = 0
-    if fila == 2:
-        x1 = 0
-        x2 = 1
-        d = 1
-    if fila == 3:
-        x1 = 1
-        x2 = 0
-        d = 1
-    if fila == 4:
-        x1 = 1
-        x2 = 1
-        d = 0
 
+print("Selecciona la función de pérdida a utilizar:")
+print("1 - (y - d)")
+print("2 - (y - d)^2")
+print("3 - 1/4 * (y - d)^2")
+
+opcion = input("Ingresa el número de la opción (1/2/3): ")
+
+# Tabla (entrada, salida deseada)
+datos = [
+    (0, 0, 0),
+    (0, 1, 1),
+    (1, 0, 1),
+    (1, 1, 0)
+]
+
+print("\nENTRENAMIENTO ADALINE")
+print(f"Usando función de pérdida tipo {opcion}\n")
+
+for epoca in range(1, max_epocas + 1):
+    print(f"\n=== Época {epoca} ===")
+    for paso, (x1, x2, d) in enumerate(datos, 1):
         
-    z = (w1 * x1) + (w2 * x2) + b
-    
-    error = 1/4*(d - z)*(d - z)
-    if error != 0:
+        z = (w1 * x1) + (w2 * x2) + b
+        y = z  
+
+        error = d - y
+       
+        if opcion == '1':
+            perdida = error
+        elif opcion == '2':
+            perdida = 0.5*error**2
+        elif opcion == '3':
+            perdida = 0.25 * error**2
+
+        # Actualización de pesos
         w1 = w1 + n * error * x1
         w2 = w2 + n * error * x2
         b = b + n * error
 
-    
-    print("Paso ", x)
-    print("w1 = ", w1)
-    print("w2 = ", w2)
-    print("b = ", b)
-    print("----------------")
-    x += 1
-    fila += 1
+        
+        print(f"\nPaso {paso}")
+        print(f"Entrada: x1={x1}, x2={x2}, deseado={d}")
+        print(f"Salida (y=z): {y:.4f}")
+        print(f"(y - d): {error:.4f}")
+        if opcion == '2':
+            print(f"(y - d)^2: {perdida:.4f}")
+        elif opcion == '3':
+            print(f"1/4 * (y - d)^2: {perdida:.4f}")
+        else:
+            print(f"Pérdida: {perdida:.4f}")
+        print(f"w1 = {w1:.4f}, w2 = {w2:.4f}, b = {b:.4f}")
+        print("-" * 30)
+
+    # Evaluar al final de cada época
+    def predict(X, w, b):
+        z = np.dot(X, w) + b
+        return np.where(z >= 0.5, 1, 0)
+
+    X = np.array([
+        [0, 0],
+        [0, 1],
+        [1, 0],
+        [1, 1]
+    ])
+    deseado = np.array([0, 1, 1, 0])
+    w_final = np.array([w1, w2])
+    b_final = b
+    predicciones = predict(X, w_final, b_final)
+
+    print("\n--- Evaluación tras la época ---")
+    for i in range(4):
+        print(f"Entrada: {X[i]}, Esperado: {deseado[i]}, Predicción: {predicciones[i]}")
+
+    # Condición de parada anticipada
+    if np.array_equal(predicciones, deseado):
+        print("\n¡Entrenamiento detenido temprano! El modelo aprendió correctamente.")
+        break
+
+
+print("\n=== EVALUACIÓN FINAL ===")
+for i in range(4):
+    print(f"Entrada: {X[i]}, Salida esperada: {deseado[i]}, Predicción: {predicciones[i]}")
+
+
